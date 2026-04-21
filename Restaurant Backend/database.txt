@@ -1,0 +1,350 @@
+-- ============================================================
+--   RESTAURANT QR ORDERING SYSTEM — DATABASE SCHEMA
+--   File   : database.txt
+--   Engine : MySQL 8.0+
+--   Charset: utf8mb4
+--   Note   : created_at / updated_at stored as VARCHAR(100)
+--            and set via moment-timezone (Asia/Kolkata) in app
+-- ============================================================
+
+-- ─── Create & Select Database ────────────────────────────────
+CREATE DATABASE IF NOT EXISTS restaurant_db
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE restaurant_db;
+
+
+-- ============================================================
+-- 1. SUPER ADMIN
+--    Platform-level admin who manages all tenants (restaurants)
+-- ============================================================
+CREATE TABLE super_admins (
+  id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  name          VARCHAR(100)    NOT NULL,
+  email         VARCHAR(150)    NOT NULL UNIQUE,
+  password_hash VARCHAR(255)    NOT NULL,
+  is_active     TINYINT(1)      NOT NULL DEFAULT 1,
+  created_at    VARCHAR(100)    NOT NULL,
+  updated_at    VARCHAR(100)    NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 2. RESTAURANTS  (Tenants)
+--    Each restaurant is one SaaS tenant
+-- ============================================================
+CREATE TABLE restaurants (
+  id                      INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  name                    VARCHAR(150)    NOT NULL,
+  owner_name              VARCHAR(150)    NOT NULL,                       -- Restaurant owner ka naam
+  slug                    VARCHAR(150)    NOT NULL UNIQUE,                -- QR URL e.g. /menu/pizza-palace
+  logo_url                VARCHAR(500)    DEFAULT NULL,
+  address                 TEXT            DEFAULT NULL,
+  phone                   VARCHAR(20)     DEFAULT NULL,
+  email                   VARCHAR(150)    DEFAULT NULL,
+  currency                VARCHAR(10)     NOT NULL DEFAULT 'INR',
+  timezone                VARCHAR(60)     NOT NULL DEFAULT 'Asia/Kolkata',
+
+  -- ── Business Info ────────────────────────────────────────────
+  restaurant_type         ENUM('veg','non_veg','both') NOT NULL DEFAULT 'both',  -- Veg / Non-Veg / Both
+  service_type            ENUM('dine_in','takeaway','both') NOT NULL DEFAULT 'both', -- Future support
+  operating_hours_open    VARCHAR(10)     DEFAULT NULL,                  -- e.g. '09:00'
+  operating_hours_close   VARCHAR(10)     DEFAULT NULL,                  -- e.g. '23:00'
+
+  -- ── GST ──────────────────────────────────────────────────────
+  gst_enabled             TINYINT(1)      NOT NULL DEFAULT 0,             -- 0=No, 1=Yes
+  gst_no                  VARCHAR(20)     DEFAULT NULL,                   -- GSTIN number
+  gst_percentage          DECIMAL(5,2)    NOT NULL DEFAULT 0.00,          -- e.g. 5.00, 12.00, 18.00
+
+  is_active               TINYINT(1)      NOT NULL DEFAULT 1,
+  created_at              VARCHAR(100)    NOT NULL,
+  updated_at              VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_slug (slug)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 3. RESTAURANT SUBSCRIPTIONS
+--    Har restaurant ka subscription plan alag track hoga
+-- ============================================================
+CREATE TABLE restaurant_subscriptions (
+  id                      INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  restaurant_id           INT UNSIGNED    NOT NULL UNIQUE,               -- 1 restaurant = 1 active subscription
+  plan                    ENUM('free','basic','pro') NOT NULL DEFAULT 'free',
+  status                  ENUM('trial','active','expired') NOT NULL DEFAULT 'trial', -- Active / Expired / Trial
+  subscription_start_date VARCHAR(100)    NOT NULL,                      -- Plan kab se shuru hua
+  subscription_expires_at VARCHAR(100)    DEFAULT NULL,                  -- Kab expire hoga (NULL = lifetime/free)
+  created_at              VARCHAR(100)    NOT NULL,
+  updated_at              VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_sub_restaurant (restaurant_id),
+  CONSTRAINT fk_sub_restaurant FOREIGN KEY (restaurant_id)
+    REFERENCES restaurants(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 4. RESTAURANT USERS  (Staff / Owners per restaurant)
+--    role: owner | manager | staff | kitchen
+-- ============================================================
+CREATE TABLE restaurant_users (
+  id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  restaurant_id   INT UNSIGNED    NOT NULL,
+  name            VARCHAR(100)    NOT NULL,
+  email           VARCHAR(150)    NOT NULL,
+  password_hash   VARCHAR(255)    NOT NULL,
+  role            ENUM('owner','manager','staff','kitchen') NOT NULL DEFAULT 'staff',
+  is_active       TINYINT(1)      NOT NULL DEFAULT 1,
+  last_login_at   VARCHAR(100)    DEFAULT NULL,
+  created_at      VARCHAR(100)    NOT NULL,
+  updated_at      VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_restaurant_email (restaurant_id, email),
+  CONSTRAINT fk_ru_restaurant FOREIGN KEY (restaurant_id)
+    REFERENCES restaurants(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 5. TABLES  (Physical dining tables inside a restaurant)
+-- ============================================================
+CREATE TABLE restaurant_tables (
+  id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  restaurant_id   INT UNSIGNED    NOT NULL,
+  table_number    VARCHAR(20)     NOT NULL,          -- e.g. "T1", "A3", "Terrace-2"
+  capacity        TINYINT UNSIGNED NOT NULL DEFAULT 4,
+  qr_code_url     VARCHAR(500)    DEFAULT NULL,      -- stored QR image URL
+  qr_token        VARCHAR(100)    NOT NULL UNIQUE,   -- unique token embedded in QR URL
+  is_active       TINYINT(1)      NOT NULL DEFAULT 1,
+  created_at      VARCHAR(100)    NOT NULL,
+  updated_at      VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_table_per_restaurant (restaurant_id, table_number),
+  INDEX idx_qr_token (qr_token),
+  CONSTRAINT fk_rt_restaurant FOREIGN KEY (restaurant_id)
+    REFERENCES restaurants(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 6. MENU CATEGORIES
+--    e.g. Starters, Main Course, Beverages, Desserts
+-- ============================================================
+CREATE TABLE menu_categories (
+  id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  restaurant_id   INT UNSIGNED    NOT NULL,
+  name            VARCHAR(100)    NOT NULL,
+  description     TEXT            DEFAULT NULL,
+  image_url       VARCHAR(500)    DEFAULT NULL,
+  sort_order      SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  is_active       TINYINT(1)      NOT NULL DEFAULT 1,
+  created_at      VARCHAR(100)    NOT NULL,
+  updated_at      VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_mc_restaurant (restaurant_id),
+  CONSTRAINT fk_mc_restaurant FOREIGN KEY (restaurant_id)
+    REFERENCES restaurants(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 7. MENU ITEMS
+-- ============================================================
+CREATE TABLE menu_items (
+  id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  restaurant_id   INT UNSIGNED    NOT NULL,
+  category_id     INT UNSIGNED    NOT NULL,
+  name            VARCHAR(150)    NOT NULL,
+  description     TEXT            DEFAULT NULL,
+  image_url       VARCHAR(500)    DEFAULT NULL,
+  price           DECIMAL(10,2)   NOT NULL,
+  discount_price  DECIMAL(10,2)   DEFAULT NULL,      -- optional sale price
+  is_veg          TINYINT(1)      NOT NULL DEFAULT 1, -- 1=Veg, 0=Non-veg
+  is_available    TINYINT(1)      NOT NULL DEFAULT 1,
+  is_featured     TINYINT(1)      NOT NULL DEFAULT 0,
+  sort_order      SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  prep_time_mins  TINYINT UNSIGNED DEFAULT NULL,     -- estimated prep time
+  tags            JSON            DEFAULT NULL,       -- e.g. ["spicy","bestseller"]
+  created_at      VARCHAR(100)    NOT NULL,
+  updated_at      VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_mi_restaurant (restaurant_id),
+  INDEX idx_mi_category  (category_id),
+  CONSTRAINT fk_mi_restaurant FOREIGN KEY (restaurant_id)
+    REFERENCES restaurants(id) ON DELETE CASCADE,
+  CONSTRAINT fk_mi_category FOREIGN KEY (category_id)
+    REFERENCES menu_categories(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 8. MENU ITEM VARIANTS / ADD-ONS
+--    e.g. Small / Medium / Large, Extra Cheese, etc.
+-- ============================================================
+CREATE TABLE menu_item_variants (
+  id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  menu_item_id    INT UNSIGNED    NOT NULL,
+  name            VARCHAR(100)    NOT NULL,           -- e.g. "Large", "Extra Spicy"
+  extra_price     DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
+  is_available    TINYINT(1)      NOT NULL DEFAULT 1,
+  created_at      VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_miv_item (menu_item_id),
+  CONSTRAINT fk_miv_item FOREIGN KEY (menu_item_id)
+    REFERENCES menu_items(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 9. CUSTOMERS
+--    Customers who scan QR and place orders (guest or registered)
+-- ============================================================
+CREATE TABLE customers (
+  id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  restaurant_id   INT UNSIGNED    NOT NULL,
+  name            VARCHAR(100)    DEFAULT NULL,
+  phone           VARCHAR(20)     DEFAULT NULL,
+  email           VARCHAR(150)    DEFAULT NULL,
+  is_guest        TINYINT(1)      NOT NULL DEFAULT 1,
+  created_at      VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_cust_restaurant (restaurant_id),
+  CONSTRAINT fk_cust_restaurant FOREIGN KEY (restaurant_id)
+    REFERENCES restaurants(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 10. ORDERS
+-- ============================================================
+CREATE TABLE orders (
+  id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  restaurant_id   INT UNSIGNED    NOT NULL,
+  table_id        INT UNSIGNED    NOT NULL,
+  customer_id     INT UNSIGNED    DEFAULT NULL,
+  order_number    VARCHAR(30)     NOT NULL,           -- human-readable e.g. "ORD-20240401-0023"
+  status          ENUM(
+                    'pending',      -- just placed, awaiting confirmation
+                    'confirmed',    -- restaurant accepted
+                    'preparing',    -- kitchen is cooking
+                    'ready',        -- ready to serve
+                    'served',       -- delivered to table
+                    'completed',    -- payment done
+                    'cancelled'
+                  ) NOT NULL DEFAULT 'pending',
+  total_amount    DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
+  discount_amount DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
+  tax_amount      DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
+  grand_total     DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
+  special_notes   TEXT            DEFAULT NULL,
+  created_at      VARCHAR(100)    NOT NULL,
+  updated_at      VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_order_number (restaurant_id, order_number),
+  INDEX idx_order_restaurant (restaurant_id),
+  INDEX idx_order_table      (table_id),
+  INDEX idx_order_status     (status),
+  CONSTRAINT fk_order_restaurant FOREIGN KEY (restaurant_id)
+    REFERENCES restaurants(id) ON DELETE CASCADE,
+  CONSTRAINT fk_order_table FOREIGN KEY (table_id)
+    REFERENCES restaurant_tables(id),
+  CONSTRAINT fk_order_customer FOREIGN KEY (customer_id)
+    REFERENCES customers(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 11. ORDER ITEMS  (Line items inside each order)
+-- ============================================================
+CREATE TABLE order_items (
+  id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  order_id        INT UNSIGNED    NOT NULL,
+  menu_item_id    INT UNSIGNED    NOT NULL,
+  variant_id      INT UNSIGNED    DEFAULT NULL,
+  item_name       VARCHAR(150)    NOT NULL,           -- snapshot at time of order
+  variant_name    VARCHAR(100)    DEFAULT NULL,
+  unit_price      DECIMAL(10,2)   NOT NULL,
+  quantity        TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  subtotal        DECIMAL(10,2)   NOT NULL,
+  special_notes   VARCHAR(255)    DEFAULT NULL,
+  created_at      VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_oi_order     (order_id),
+  INDEX idx_oi_menu_item (menu_item_id),
+  CONSTRAINT fk_oi_order FOREIGN KEY (order_id)
+    REFERENCES orders(id) ON DELETE CASCADE,
+  CONSTRAINT fk_oi_menu_item FOREIGN KEY (menu_item_id)
+    REFERENCES menu_items(id),
+  CONSTRAINT fk_oi_variant FOREIGN KEY (variant_id)
+    REFERENCES menu_item_variants(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 12. PAYMENTS
+-- ============================================================
+CREATE TABLE payments (
+  id                  INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  order_id            INT UNSIGNED    NOT NULL UNIQUE,
+  restaurant_id       INT UNSIGNED    NOT NULL,
+  amount              DECIMAL(10,2)   NOT NULL,
+  method              ENUM('cash','upi','card','online') NOT NULL DEFAULT 'cash',
+  status              ENUM('pending','paid','failed','refunded') NOT NULL DEFAULT 'pending',
+  transaction_id      VARCHAR(200)    DEFAULT NULL,   -- gateway txn ref
+  payment_gateway     VARCHAR(50)     DEFAULT NULL,   -- e.g. 'razorpay', 'stripe'
+  gateway_response    JSON            DEFAULT NULL,   -- raw gateway payload
+  paid_at             VARCHAR(100)    DEFAULT NULL,
+  created_at          VARCHAR(100)    NOT NULL,
+  updated_at          VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_pay_restaurant (restaurant_id),
+  CONSTRAINT fk_pay_order      FOREIGN KEY (order_id)
+    REFERENCES orders(id) ON DELETE CASCADE,
+  CONSTRAINT fk_pay_restaurant FOREIGN KEY (restaurant_id)
+    REFERENCES restaurants(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 13. NOTIFICATIONS
+--    Real-time alerts (kitchen display, staff alerts, etc.)
+-- ============================================================
+CREATE TABLE notifications (
+  id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  restaurant_id   INT UNSIGNED    NOT NULL,
+  order_id        INT UNSIGNED    DEFAULT NULL,
+  type            VARCHAR(60)     NOT NULL,           -- e.g. 'new_order', 'order_ready'
+  message         TEXT            NOT NULL,
+  is_read         TINYINT(1)      NOT NULL DEFAULT 0,
+  created_at      VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_notif_restaurant (restaurant_id),
+  INDEX idx_notif_order      (order_id),
+  CONSTRAINT fk_notif_restaurant FOREIGN KEY (restaurant_id)
+    REFERENCES restaurants(id) ON DELETE CASCADE,
+  CONSTRAINT fk_notif_order FOREIGN KEY (order_id)
+    REFERENCES orders(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 14. REFRESH TOKENS  (JWT token rotation)
+-- ============================================================
+CREATE TABLE refresh_tokens (
+  id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  user_id         INT UNSIGNED    NOT NULL,
+  user_type       ENUM('super_admin','restaurant_user') NOT NULL,
+  token           VARCHAR(512)    NOT NULL UNIQUE,
+  expires_at      VARCHAR(100)    NOT NULL,
+  created_at      VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_rt_user (user_id, user_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- END OF SCHEMA
+-- ============================================================
