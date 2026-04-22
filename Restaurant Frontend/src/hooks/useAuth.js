@@ -1,0 +1,66 @@
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import {
+  loginStart,
+  loginSuccess,
+  loginFailure,
+  logout,
+  updateUser,
+  clearError,
+  selectAuth,
+  selectUser,
+  selectIsAuthenticated,
+} from '../store/slices/authSlice';
+import api from '../services/api';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// useAuth — Custom hook for all authentication-related logic
+// ─────────────────────────────────────────────────────────────────────────────
+const useAuth = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const auth = useSelector(selectAuth);
+  const user = useSelector(selectUser);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+
+  // ─── Login ────────────────────────────────────────────
+  const login = async (credentials) => {
+    dispatch(loginStart());
+    try {
+      const { data } = await api.post('/auth/login', credentials);
+      dispatch(loginSuccess({ user: data.data.user, token: data.data.token }));
+      navigate('/dashboard');
+      return { success: true };
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || 'Login fail ho gaya, dobara try karein.';
+      dispatch(loginFailure(message));
+      return { success: false, message };
+    }
+  };
+
+  // ─── Logout ───────────────────────────────────────────
+  const logoutUser = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
+  // ─── Clear Error ──────────────────────────────────────
+  const clearAuthError = () => dispatch(clearError());
+
+  // ─── Update Profile ───────────────────────────────────
+  const updateProfile = (updatedData) => dispatch(updateUser(updatedData));
+
+  return {
+    user,
+    isAuthenticated,
+    isLoading: auth.isLoading,
+    error: auth.error,
+    login,
+    logout: logoutUser,
+    clearAuthError,
+    updateProfile,
+  };
+};
+
+export default useAuth;

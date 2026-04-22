@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 21, 2026 at 06:15 AM
+-- Generation Time: Apr 22, 2026 at 06:15 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -42,7 +42,8 @@ CREATE TABLE `refresh_tokens` (
 
 INSERT INTO `refresh_tokens` (`id`, `user_id`, `user_type`, `token`, `expires_at`, `created_at`) VALUES
 (1, 1, 'super_admin', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InN1cGVyX2FkbWluIiwiaWF0IjoxNzc1MzI4NDEzLCJleHAiOjE3NzU5MzMyMTN9.-a7M1CUAnjBydCuRHeRsgwOvYt7D3czi-MX7i77tuTA', '2026-04-12 00:16:53', '2026-04-04 18:46:53'),
-(2, 1, 'super_admin', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InN1cGVyX2FkbWluIiwiaWF0IjoxNzc2Njk1NjM5LCJleHAiOjE3NzczMDA0Mzl9.TVnV1qcwk-B5zehGNF2YCkvfP6qMgr5zbNkhxafUHbo', '2026-04-27 20:03:59', '2026-04-20 14:33:59');
+(2, 1, 'super_admin', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InN1cGVyX2FkbWluIiwiaWF0IjoxNzc2Njk1NjM5LCJleHAiOjE3NzczMDA0Mzl9.TVnV1qcwk-B5zehGNF2YCkvfP6qMgr5zbNkhxafUHbo', '2026-04-27 20:03:59', '2026-04-20 14:33:59'),
+(4, 1, 'restaurant_user', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6Im93bmVyIiwiaWF0IjoxNzc2ODMwMjQ5LCJleHAiOjE3Nzc0MzUwNDl9.7UbOw5V7ByTz6u9QTWUlOMF7jB-LWAXCdVW-SazHH2s', '2026-04-29 09:27:29', '2026-04-22 03:57:29');
 
 -- --------------------------------------------------------
 
@@ -128,7 +129,7 @@ CREATE TABLE `restaurant_users` (
 --
 
 INSERT INTO `restaurant_users` (`id`, `restaurant_id`, `name`, `email`, `password_hash`, `role`, `is_active`, `last_login_at`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Ramesh', 'ramesh@gmail.com', '$2b$12$2N1rl758zuZ5XJkPt70S9OkSNCT.BULRQYq2ElD/elYTdVEMjM2lC', 'owner', 1, NULL, '2026-04-20 20:05:55', '2026-04-20 20:05:55');
+(1, 1, 'Ramesh', 'ramesh@gmail.com', '$2b$12$2N1rl758zuZ5XJkPt70S9OkSNCT.BULRQYq2ElD/elYTdVEMjM2lC', 'owner', 1, '2026-04-22 09:27:29', '2026-04-20 20:05:55', '2026-04-22 09:27:29');
 
 -- --------------------------------------------------------
 
@@ -203,7 +204,7 @@ ALTER TABLE `super_admins`
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `restaurants`
