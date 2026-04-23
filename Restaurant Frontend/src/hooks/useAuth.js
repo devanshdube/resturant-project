@@ -24,11 +24,19 @@ const useAuth = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
 
   // ─── Login ────────────────────────────────────────────
-  const login = async (credentials) => {
+  const login = async (credentials, userType = 'restaurant') => {
     dispatch(loginStart());
     try {
-      const { data } = await api.post('/auth/login', credentials);
-      dispatch(loginSuccess({ user: data.data.user, token: data.data.token }));
+      const endpoint = userType === 'admin' ? '/super-admin/login' : '/auth/login';
+      const { data } = await api.post(endpoint, credentials);
+      
+      const userData = userType === 'admin' 
+        ? { ...data.data.admin, role: 'superadmin' } 
+        : data.data.user;
+        
+      const token = data.data.tokens?.access_token || data.data.token; // Fallback jic
+        
+      dispatch(loginSuccess({ user: userData, token }));
       navigate('/dashboard');
       return { success: true };
     } catch (error) {

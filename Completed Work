@@ -20,8 +20,14 @@ The primary goal of this project is to develop a comprehensive, multi-tenant Res
 
 ### 2. Frontend Development (React, Vite)
 - **Base Setup**: Vite + Tailwind CSS + Axios integration.
-- **Authentication**: Login Page UI and Auth state management.
-- **Routing**: Protected Routes implementation based on user roles.
+- **Authentication**: 
+    - **Premium LoginPage**: Redesigned with a split-screen, high-fidelity UI.
+    - **Role-Based Toggle**: Added visual switch between "Restaurant" and "Platform Admin" portals.
+    - **Dual-Endpoint Logic**: Updated `useAuth` hook to dynamically handle different backend login endpoints and response structures.
+    - Auth state management and Protected Routes implementation.
+- **UI/UX Enhancements**:
+    - Integrated `lucide-react` for professional iconography.
+    - Custom AI-generated branding assets for the login/landing experience.
 
 ### 3. Database Design
 - **Core Schema**: Tables for Restaurants, Users, Menus, Tables, and Subscriptions are ready.
@@ -50,4 +56,4 @@ The primary goal of this project is to develop a comprehensive, multi-tenant Res
 ---
 
 ## Current Status
-The **Backend Core** is ~80% functional. The **Frontend** is in the early phase (Auth only). The next major focus is implementing the **Order & Session Logic** and building the **Guest Ordering UI**.
+The **Backend Core** is ~80% functional. The **Frontend Login & Authentication** is now fully polished and role-aware. The next major focus is building the **Admin/Owner Dashboards** and implementing the **Order & Session Logic**.
