@@ -1,36 +1,53 @@
 # Project: Restaurant Management System (RMS)
+**Last Updated: 2026-04-23**
 
 ## Project Goal
-The primary goal of this project is to develop a comprehensive, multi-tenant Restaurant Management System. This system allows restaurant owners and staff to manage their business operations seamlessly, including menu management, table assignments, order processing, and staff coordination, all through a modern and responsive web interface.
+The primary goal of this project is to develop a comprehensive, multi-tenant Restaurant Management System. This system allows restaurant owners and staff to manage their business operations (Menu, Tables, Orders) and provides a QR-based Guest Ordering system for customers.
 
 ---
 
-## Completed Work
+## ✅ Completed Work (As of April 23, 2026)
 
 ### 1. Backend Development (Node.js, Express, TypeScript)
-- **Core Architecture**: Established a solid TypeScript-based backend structure with organized routes, controllers, and middlewares.
-- **Database Integration**: Set up MySQL integration using connection pooling for efficient data handling.
+- **Core Architecture**: TypeScript structure with connection pooling (MySQL) and error handling.
 - **Authentication & Security**:
-    - Implemented JWT-based authentication system.
-    - Role-Based Access Control (RBAC) for SuperAdmin, Restaurant Owners, Managers, and Staff.
-    - Secure password hashing using Bcrypt.
-- **SuperAdmin Module**: Full management for onboarding and managing multiple restaurants.
-- **Restaurant Profile**: Implementation of endpoints to manage restaurant identity (Logo, Timings, Contact Info, Social Links, GST).
-- **Menu Management System**: 
-    - Full CRUD for Menu Categories.
-    - Full CRUD for Menu Items (Price, Veg/Non-Veg, Descriptions).
-    - Item Variants support (e.g., S/M/L sizes or different portions).
-- **Table Management**: Endpoints to manage restaurant tables and their real-time status.
+    - JWT-based Auth with Refresh Token logic.
+    - Role-Based Access Control (RBAC): SuperAdmin, Owner, Manager, Staff, Kitchen.
+- **SuperAdmin Module**: Full management for onboarding restaurants and managing subscription plans.
+- **Restaurant Management**: Endpoints for profile management (GST, Logo, Timings, etc.).
+- **Menu System**: Complete CRUD for Categories, Menu Items, and Portions/Variants.
+- **Table Management**: CRUD for physical tables and status tracking.
 
 ### 2. Frontend Development (React, Vite)
-- **Project Initialization**: Created the React application using Vite for high performance.
-- **Styling Foundation**: Integrated Tailwind CSS for a modern and responsive design system.
-- **Basic Routing & Structure**: Setup of the main `App.jsx` and project scaffolding.
+- **Base Setup**: Vite + Tailwind CSS + Axios integration.
+- **Authentication**: Login Page UI and Auth state management.
+- **Routing**: Protected Routes implementation based on user roles.
 
 ### 3. Database Design
-- **SQL Schema**: Designed and provided a complete `restaurant_db.sql` schema covering all essential tables (Users, Restaurants, Menus, Tables, Orders, etc.).
+- **Core Schema**: Tables for Restaurants, Users, Menus, Tables, and Subscriptions are ready.
+
+---
+
+## ⏳ In Progress & Pending Work
+
+### 1. Backend (Pending)
+- [ ] **Order Management**: Controller and Routes for placing and tracking orders.
+- [ ] **Public/Guest APIs**: Public endpoints for Menu fetching via QR.
+- [ ] **Table Sessions**: Logic for "Multi-session Table Ordering" (Individual Guest tracking).
+- [ ] **Billing & Payments**: Invoice generation and payment status tracking.
+
+### 2. Frontend (Pending)
+- [ ] **Dashboard Implementation**: 
+    - SuperAdmin Dashboard (Stats, Restaurant list).
+    - Restaurant Admin Dashboard (Menu management, Table view).
+- [ ] **Guest Ordering Flow (QR Flow)**:
+    - Landing page for QR scan.
+    - Public Menu view & Cart system.
+    - Individual session-based ordering.
+- [ ] **Staff/Kitchen Display**: Real-time order updates for kitchen staff.
+- [ ] **Billing UI**: Separate and Merged billing interface for staff.
 
 ---
 
 ## Current Status
-The backend API is largely functional for core management tasks (Restaurant, Menu, Tables, Auth). The frontend is in the initial setup phase and ready for component development to consume these APIs.
+The **Backend Core** is ~80% functional. The **Frontend** is in the early phase (Auth only). The next major focus is implementing the **Order & Session Logic** and building the **Guest Ordering UI**.
