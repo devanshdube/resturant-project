@@ -6,7 +6,7 @@ The primary goal of this project is to develop a comprehensive, multi-tenant Res
 
 ---
 
-## ✅ Completed Work (As of April 23, 2026)
+## ✅ Completed Work (As of April 26, 2026)
 
 ### 1. Backend Development (Node.js, Express, TypeScript)
 - **Core Architecture**: TypeScript structure with connection pooling (MySQL) and error handling.
@@ -25,6 +25,11 @@ The primary goal of this project is to develop a comprehensive, multi-tenant Res
     - **Role-Based Toggle**: Added visual switch between "Restaurant" and "Platform Admin" portals.
     - **Dual-Endpoint Logic**: Updated `useAuth` hook to dynamically handle different backend login endpoints and response structures.
     - Auth state management and Protected Routes implementation.
+- **SuperAdmin Platform**:
+    - **Main Dashboard**: High-fidelity UI with real-time platform stats cards.
+    - **Onboarding Flow**: Modal-based workflow for creating new restaurant accounts.
+    - **Management Table**: Comprehensive table with search, status filtering, and pagination.
+    - **Admin Actions**: Block/Unblock restaurant owners and manage subscription plans/expiry via modal.
 - **UI/UX Enhancements**:
     - Integrated `lucide-react` for professional iconography.
     - Custom AI-generated branding assets for the login/landing experience.
@@ -36,24 +41,24 @@ The primary goal of this project is to develop a comprehensive, multi-tenant Res
 
 ## ⏳ In Progress & Pending Work
 
-### 1. Backend (Pending)
-- [ ] **Order Management**: Controller and Routes for placing and tracking orders.
-- [ ] **Public/Guest APIs**: Public endpoints for Menu fetching via QR.
-- [ ] **Table Sessions**: Logic for "Multi-session Table Ordering" (Individual Guest tracking).
-- [ ] **Billing & Payments**: Invoice generation and payment status tracking.
+### 1. Frontend (Current Focus)
+- [ ] **Restaurant Owner Dashboard**: 
+    - Menu management UI.
+    - Table status view.
+    - Order management interface.
+- [ ] **Super Admin Sidebar Pages**: Detailed views for "Restaurants", "Subscriptions", and "Settings" (Currently placeholders).
 
-### 2. Frontend (Pending)
-- [ ] **Dashboard Implementation**: 
-    - SuperAdmin Dashboard (Stats, Restaurant list).
-    - Restaurant Admin Dashboard (Menu management, Table view).
+### 2. Core Features (Pending)
+- [ ] **Order Management System**: Backend logic and real-time updates.
 - [ ] **Guest Ordering Flow (QR Flow)**:
     - Landing page for QR scan.
     - Public Menu view & Cart system.
     - Individual session-based ordering.
 - [ ] **Staff/Kitchen Display**: Real-time order updates for kitchen staff.
-- [ ] **Billing UI**: Separate and Merged billing interface for staff.
+- [ ] **Billing & Payments**: Invoice generation and payment status tracking.
 
 ---
 
 ## Current Status
-The **Backend Core** is ~80% functional. The **Frontend Login & Authentication** is now fully polished and role-aware. The next major focus is building the **Admin/Owner Dashboards** and implementing the **Order & Session Logic**.
+The **SuperAdmin Platform** is now functional and polished. We are now shifting focus to the **Restaurant Owner Dashboard** to enable owners to manage their menus and view their business operations.
+

@@ -630,3 +630,42 @@ export const getOwnerSubscription = asyncHandler(
     });
   }
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// @route   GET /api/v1/super-admin/stats
+// @desc    Platform ke total stats fetch karo
+// @access  Protected (Super Admin)
+// ─────────────────────────────────────────────────────────────────────────────
+export const getPlatformStats = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const [totalRows] = await pool.execute('SELECT COUNT(*) as count FROM restaurants');
+    const [activeRows] = await pool.execute('SELECT COUNT(*) as count FROM restaurants WHERE is_active = 1');
+    const [inactiveRows] = await pool.execute('SELECT COUNT(*) as count FROM restaurants WHERE is_active = 0');
+    
+    const [planRows] = await pool.execute('SELECT plan, COUNT(*) as count FROM restaurant_subscriptions GROUP BY plan');
+    const [statusRows] = await pool.execute('SELECT status, COUNT(*) as count FROM restaurant_subscriptions GROUP BY status');
+
+    const total = (totalRows as any[])[0].count;
+    const active = (activeRows as any[])[0].count;
+    const inactive = (inactiveRows as any[])[0].count;
+
+    const byPlan: Record<string, number> = { free: 0, basic: 0, pro: 0 };
+    (planRows as any[]).forEach(row => {
+      byPlan[row.plan] = row.count;
+    });
+
+    const trials = (statusRows as any[]).find(r => r.status === 'trial')?.count || 0;
+
+    return res.status(200).json({
+      success: true,
+      message: 'Platform stats fetched',
+      data: {
+        total,
+        active,
+        inactive,
+        trials,
+        byPlan,
+      },
+    });
+  }
+);

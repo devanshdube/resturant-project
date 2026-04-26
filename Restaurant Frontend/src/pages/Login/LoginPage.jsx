@@ -23,14 +23,14 @@ const LoginPage = () => {
       <div className="hidden lg:flex w-1/2 relative bg-gray-900 items-center justify-center">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 overflow-hidden">
-          <img 
-            src="/images/login-bg.png" 
-            alt="Restaurant Interior" 
+          <img
+            src="/images/login-bg.png"
+            alt="Restaurant Interior"
             className="w-full h-full object-cover opacity-60"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent"></div>
         </div>
-        
+
         {/* Branding Content */}
         <div className="relative z-10 p-12 max-w-2xl text-center">
           <div className="inline-flex items-center justify-center p-4 bg-amber-500/20 backdrop-blur-md rounded-2xl mb-8 border border-amber-500/30 shadow-2xl">
@@ -61,17 +61,16 @@ const LoginPage = () => {
           <div className="text-center lg:text-left">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">Welcome back</h2>
             <p className="text-sm text-gray-500 font-medium mb-6">Please enter your details to sign in to your portal.</p>
-            
+
             {/* User Type Toggle */}
             <div className="flex p-1 space-x-1 bg-gray-100/80 rounded-xl mb-6 border border-gray-200/50 backdrop-blur-sm">
               <button
                 type="button"
                 onClick={() => setUserType('restaurant')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
-                  userType === 'restaurant'
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${userType === 'restaurant'
                     ? 'bg-white text-gray-900 shadow-sm border border-gray-200/50'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <User size={16} className={userType === 'restaurant' ? 'text-amber-500' : ''} />
                 Restaurant
@@ -79,11 +78,10 @@ const LoginPage = () => {
               <button
                 type="button"
                 onClick={() => setUserType('admin')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
-                  userType === 'admin'
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${userType === 'admin'
                     ? 'bg-white text-gray-900 shadow-sm border border-gray-200/50'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <Shield size={16} className={userType === 'admin' ? 'text-amber-500' : ''} />
                 Platform Admin
@@ -167,7 +165,7 @@ const LoginPage = () => {
                 </span>
               )}
             </button>
-            
+
             {/* Disclaimer or Additional Info */}
             <p className="text-center text-xs text-gray-500 mt-6 font-medium">
               By signing in, you agree to our Terms of Service and Privacy Policy.

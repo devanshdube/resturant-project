@@ -10,6 +10,7 @@ import {
   assignSubscription,
   updateSubscription,
   getOwnerSubscription,
+  getPlatformStats,
 } from '../controllers/superAdmin.controller';
 
 const router = Router();
@@ -27,6 +28,9 @@ router.post('/login', loginSuperAdmin);
 // ─────────────────────────────────────────────────────────────────────────────
 // PROTECTED ROUTES  (JWT required — Super Admin only)
 // ─────────────────────────────────────────────────────────────────────────────
+
+// GET    /api/v1/super-admin/stats            → Global platform stats
+router.get('/stats', protectSuperAdmin, getPlatformStats);
 
 // POST   /api/v1/super-admin/owners/create   → Restaurant owner create karo
 router.post('/owners/create', protectSuperAdmin, createOwner);

@@ -1,4 +1,4 @@
-import express, { Application, Request, Response, NextFunction } from 'express';
+import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -11,6 +11,9 @@ import restaurantRoutes from './routes/restaurant.routes';
 import tableRoutes from './routes/table.routes';
 import menuRoutes from './routes/menu.routes';
 // import orderRoutes from './routes/order.routes';
+
+// ─── Error Middleware ─────────────────────────────────────────────────────────
+import { notFound, errorHandler } from './middleware/error.middleware';
 
 const app: Application = express();
 
@@ -33,18 +36,8 @@ app.use('/api/v1/tables', tableRoutes);
 app.use('/api/v1/menu', menuRoutes);
 // app.use('/api/v1/orders', orderRoutes);
 
-// ─── 404 Handler ─────────────────────────────────────────────────────────────
-app.use((_req: Request, res: Response) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
-});
-
-// ─── Global Error Handler ─────────────────────────────────────────────────────
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('❌ Error:', err.message);
-  res.status(500).json({
-    success: false,
-    message: err.message || 'Internal Server Error',
-  });
-});
+// ─── 404 & Error Handlers ────────────────────────────────────────────────────
+app.use(notFound);
+app.use(errorHandler);
 
 export default app;

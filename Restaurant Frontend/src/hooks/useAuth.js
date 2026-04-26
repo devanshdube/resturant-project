@@ -29,15 +29,24 @@ const useAuth = () => {
     try {
       const endpoint = userType === 'admin' ? '/super-admin/login' : '/auth/login';
       const { data } = await api.post(endpoint, credentials);
-      
-      const userData = userType === 'admin' 
-        ? { ...data.data.admin, role: 'superadmin' } 
+
+      const userData = userType === 'admin'
+        ? { ...data.data.admin, role: 'superadmin' }
         : data.data.user;
-        
-      const token = data.data.tokens?.access_token || data.data.token; // Fallback jic
-        
-      dispatch(loginSuccess({ user: userData, token }));
-      navigate('/dashboard');
+
+      const token = data.data.tokens?.access_token || data.data.token;
+      const refreshToken = data.data.tokens?.refresh_token;
+
+      dispatch(loginSuccess({ user: userData, token, refreshToken }));
+
+      // Role ke hisaab se navigate karo
+      const role = userData?.role;
+      if (role === 'superadmin') {
+        navigate('/super-admin');
+      } else {
+        navigate('/dashboard');
+      }
+
       return { success: true };
     } catch (error) {
       const message =
