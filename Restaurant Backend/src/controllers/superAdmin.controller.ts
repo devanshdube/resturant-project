@@ -122,6 +122,12 @@ export const loginSuperAdmin = asyncHandler(
     const now = getNowIST();
     const expiresAt = moment().tz('Asia/Kolkata').add(7, 'days').format('YYYY-MM-DD HH:mm:ss');
 
+    // Remove old tokens to keep DB clean
+    await pool.execute(
+      'DELETE FROM refresh_tokens WHERE user_id = ? AND user_type = ?',
+      [admin.id, 'super_admin']
+    );
+
     await pool.execute(
       `INSERT INTO refresh_tokens (user_id, user_type, token, expires_at, created_at)
        VALUES (?, 'super_admin', ?, ?, ?)`,

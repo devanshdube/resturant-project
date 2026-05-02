@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import LoginPage from './pages/Login/LoginPage';
 import DashboardPage from './pages/Dashboard/DashboardPage';
 import SuperAdminDashboard from './pages/SuperAdminDashboard/SuperAdminDashboard';
+import GuestMenuPage from './pages/GuestMenu/GuestMenuPage';
 
 function App() {
   const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -23,6 +24,9 @@ function App() {
         path="/login"
         element={isAuthenticated ? <Navigate to={defaultRedirect()} replace /> : <LoginPage />}
       />
+
+      {/* Guest Menu Route (Public) */}
+      <Route path="/menu/:identifier/:tableId" element={<GuestMenuPage />} />
 
       {/* Protected Routes — Restaurant Users */}
       <Route element={<ProtectedRoute />}>

@@ -267,3 +267,45 @@ export const getVariants = asyncHandler(
     return res.status(200).json({ success: true, data: rows });
   }
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// @route   DELETE /api/v1/menu/categories/:id
+// @desc    Delete a menu category
+// @access  Protected (Owner, Manager)
+// ─────────────────────────────────────────────────────────────────────────────
+export const deleteCategory = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const user = req.user as RestaurantUserJwtPayload;
+    const { id } = req.params;
+
+    const [result] = await pool.execute(
+      'DELETE FROM menu_categories WHERE id = ? AND restaurant_id = ?',
+      [id, user.restaurant_id]
+    );
+
+    if ((result as any).affectedRows === 0) throw new AppError('Category nahi mili', 404);
+
+    return res.status(200).json({ success: true, message: 'Category delete ho gayi' });
+  }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// @route   DELETE /api/v1/menu/items/:id
+// @desc    Delete a menu item
+// @access  Protected (Owner, Manager)
+// ─────────────────────────────────────────────────────────────────────────────
+export const deleteMenuItem = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const user = req.user as RestaurantUserJwtPayload;
+    const { id } = req.params;
+
+    const [result] = await pool.execute(
+      'DELETE FROM menu_items WHERE id = ? AND restaurant_id = ?',
+      [id, user.restaurant_id]
+    );
+
+    if ((result as any).affectedRows === 0) throw new AppError('Menu item nahi mila', 404);
+
+    return res.status(200).json({ success: true, message: 'Menu item delete ho gaya' });
+  }
+);

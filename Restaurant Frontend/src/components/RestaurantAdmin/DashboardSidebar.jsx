@@ -10,21 +10,28 @@ import {
   Receipt,
   X
 } from 'lucide-react';
+import useAuth from '../../hooks/useAuth';
 
 const DashboardSidebar = ({ activeTab, onTabChange, isOpen, closeSidebar }) => {
+  const { user } = useAuth();
+  const role = user?.role || 'staff';
+
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'menu', label: 'Menu Builder', icon: UtensilsCrossed },
-    { id: 'tables', label: 'Tables & QR', icon: Table2 },
-    { id: 'orders', label: 'Live Orders', icon: ClipboardList },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['owner', 'manager'] },
+    { id: 'menu', label: 'Menu Builder', icon: UtensilsCrossed, roles: ['owner', 'manager', 'staff', 'kitchen'] },
+    { id: 'tables', label: 'Tables & QR', icon: Table2, roles: ['owner', 'manager', 'staff', 'kitchen'] },
+    { id: 'orders', label: 'Live Orders', icon: ClipboardList, roles: ['owner', 'manager', 'staff', 'kitchen'] },
   ];
 
   const otherItems = [
-    { id: 'billing', label: 'Billing & Invoices', icon: Receipt },
-    { id: 'staff', label: 'Staff Management', icon: Users },
-    { id: 'analytics', label: 'Reports', icon: BarChart3 },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'billing', label: 'Billing & Invoices', icon: Receipt, roles: ['owner', 'manager'] },
+    { id: 'staff', label: 'Staff Management', icon: Users, roles: ['owner', 'manager'] },
+    { id: 'analytics', label: 'Reports', icon: BarChart3, roles: ['owner', 'manager'] },
+    { id: 'settings', label: 'Settings', icon: Settings, roles: ['owner', 'manager'] },
   ];
+
+  const filteredMenuItems = menuItems.filter(item => item.roles.includes(role));
+  const filteredOtherItems = otherItems.filter(item => item.roles.includes(role));
 
   return (
     <>
@@ -46,7 +53,7 @@ const DashboardSidebar = ({ activeTab, onTabChange, isOpen, closeSidebar }) => {
 
         <div className="fd-nav-group">
           <span className="fd-nav-label">Main Menu</span>
-          {menuItems.map((item) => (
+          {filteredMenuItems.map((item) => (
             <div 
               key={item.id}
               className={`fd-nav-item ${activeTab === item.id ? 'active' : ''}`}
@@ -64,9 +71,10 @@ const DashboardSidebar = ({ activeTab, onTabChange, isOpen, closeSidebar }) => {
           ))}
         </div>
 
-        <div className="fd-nav-group">
-          <span className="fd-nav-label">Other</span>
-          {otherItems.map((item) => (
+        {filteredOtherItems.length > 0 && (
+          <div className="fd-nav-group">
+            <span className="fd-nav-label">Other</span>
+            {filteredOtherItems.map((item) => (
             <div 
               key={item.id}
               className={`fd-nav-item ${activeTab === item.id ? 'active' : ''}`}
@@ -83,9 +91,10 @@ const DashboardSidebar = ({ activeTab, onTabChange, isOpen, closeSidebar }) => {
             </div>
           ))}
         </div>
-      </aside>
-    </>
-  );
+      )}
+    </aside>
+  </>
+);
 };
 
 export default DashboardSidebar;

@@ -10,7 +10,8 @@ import authRoutes from './routes/auth.routes';
 import restaurantRoutes from './routes/restaurant.routes';
 import tableRoutes from './routes/table.routes';
 import menuRoutes from './routes/menu.routes';
-// import orderRoutes from './routes/order.routes';
+import publicRoutes from './routes/public.routes';
+import orderRoutes from './routes/order.routes';
 
 // ─── Error Middleware ─────────────────────────────────────────────────────────
 import { notFound, errorHandler } from './middleware/error.middleware';
@@ -20,7 +21,7 @@ const app: Application = express();
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : 'http://localhost:5173',
   credentials: true,
 }));
 app.use(morgan('dev'));
@@ -34,7 +35,8 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/restaurants', restaurantRoutes);
 app.use('/api/v1/tables', tableRoutes);
 app.use('/api/v1/menu', menuRoutes);
-// app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/public', publicRoutes);
+app.use('/api/v1/orders', orderRoutes);
 
 // ─── 404 & Error Handlers ────────────────────────────────────────────────────
 app.use(notFound);

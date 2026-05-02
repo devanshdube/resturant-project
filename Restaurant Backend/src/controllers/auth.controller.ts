@@ -37,10 +37,10 @@ export const loginRestaurantUser = asyncHandler(
       throw new AppError('email aur password daalein', 400);
 
     const [rows] = await pool.execute(
-      'SELECT ru.*, r.name as restaurant_name, r.is_active as is_restaurant_active FROM restaurant_users ru JOIN restaurants r ON r.id = ru.restaurant_id WHERE ru.email = ?',
+      'SELECT ru.*, r.name as restaurant_name, r.slug as restaurant_slug, r.is_active as is_restaurant_active FROM restaurant_users ru JOIN restaurants r ON r.id = ru.restaurant_id WHERE ru.email = ?',
       [email.toLowerCase().trim()]
     );
-    const user = (rows as (RestaurantUserRow & { is_restaurant_active: number, restaurant_name: string })[])[0];
+    const user = (rows as (RestaurantUserRow & { is_restaurant_active: number, restaurant_name: string, restaurant_slug: string })[])[0];
 
     if (!user)
       throw new AppError('Email ya password galat hai', 401);
@@ -88,6 +88,7 @@ export const loginRestaurantUser = asyncHandler(
           id: user.id,
           restaurant_id: user.restaurant_id,
           restaurant_name: user.restaurant_name,
+          slug: user.restaurant_slug,
           name: user.name,
           email: user.email,
           role: user.role,

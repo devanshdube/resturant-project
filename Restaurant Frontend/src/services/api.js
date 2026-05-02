@@ -33,6 +33,20 @@ api.interceptors.request.use(
 // ─────────────────────────────────────────────────────────────────────────────
 // Response Interceptor — Handle Global Errors (401, 403, etc.)
 // ─────────────────────────────────────────────────────────────────────────────
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -41,6 +55,7 @@ api.interceptors.response.use(
 
     // Agar token expire ho gaya ya unauthorized hai
     if (status === 401 && !originalRequest._retry) {
+      
       // Refresh routes khud loop mein na fasein
       if (
         originalRequest.url.includes('/auth/refresh-token') ||
@@ -48,11 +63,26 @@ api.interceptors.response.use(
         originalRequest.url.includes('/auth/login')
       ) {
         store.dispatch(logout());
-        window.location.href = '/login';
+        // Avoid reload if already on login page
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
         return Promise.reject(error);
       }
 
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers['Authorization'] = 'Bearer ' + token;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
         const state = store.getState();
@@ -67,32 +97,28 @@ api.interceptors.response.use(
           refresh_token: refreshToken
         });
 
-        const newAccessToken = res.data.data.tokens.access_token;
-        const newRefreshToken = res.data.data.tokens.refresh_token;
+        const { access_token, refresh_token: newRefreshToken } = res.data.data.tokens;
 
-        store.dispatch(updateTokens({ accessToken: newAccessToken, refreshToken: newRefreshToken }));
+        store.dispatch(updateTokens({ accessToken: access_token, refreshToken: newRefreshToken }));
+        processQueue(null, access_token);
 
-        // New token ke saath header set karo aur request retry karo
-        originalRequest.headers = {
-          ...originalRequest.headers,
-          'Authorization': `Bearer ${newAccessToken}`,
-        };
+        originalRequest.headers['Authorization'] = `Bearer ${access_token}`;
         return api(originalRequest);
       } catch (err) {
+        processQueue(err, null);
         store.dispatch(logout());
-        window.location.href = '/login';
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
         return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
       }
     }
 
     // Forbidden — Permission nahi hai
     if (status === 403) {
       console.error('Access forbidden: Aapke paas permission nahi hai.');
-    }
-
-    // Server Error
-    if (status >= 500) {
-      console.error('Server Error: Kuch gadbad ho gayi, baad mein try karein.');
     }
 
     return Promise.reject(error);
