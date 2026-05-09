@@ -17,11 +17,13 @@ export const getOrders = asyncHandler(
     let query = `
       SELECT 
         o.id, o.order_number, o.status, o.total_amount, o.grand_total,
-        o.special_notes, o.created_at, o.updated_at,
+        o.session_id, o.special_notes, o.created_at, o.updated_at,
         t.table_number,
+        ts.status as session_status,
         COUNT(oi.id) as item_count
       FROM orders o
       JOIN restaurant_tables t ON t.id = o.table_id
+      LEFT JOIN table_sessions ts ON ts.session_id = o.session_id
       LEFT JOIN order_items oi ON oi.order_id = o.id
       WHERE o.restaurant_id = ?
     `;

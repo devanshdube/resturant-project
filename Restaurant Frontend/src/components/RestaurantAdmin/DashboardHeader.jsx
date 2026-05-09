@@ -1,21 +1,47 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, ChevronDown, Menu, User, LogOut } from 'lucide-react';
+import { Search, ChevronDown, Menu, User, LogOut, Bell } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 import LogoutConfirmModal from '../shared/LogoutConfirmModal';
+import NotificationDropdown from './NotificationDropdown';
+import { notificationService } from '../../services/notificationService';
 
 const DashboardHeader = ({ toggleSidebar, setActiveTab }) => {
   const { user, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  
   const dropdownRef = useRef(null);
+  const notifRef = useRef(null);
 
   const restaurantName = user?.restaurant_name || 'My Restaurant';
 
-  // Close dropdown when clicking outside
+  // Fetch Notifications
+  const fetchNotifications = async () => {
+    try {
+      const res = await notificationService.getNotifications();
+      setNotifications(res.data.data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  // Polling every 20 seconds
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 20000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setShowNotifDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -26,6 +52,26 @@ const DashboardHeader = ({ toggleSidebar, setActiveTab }) => {
     setActiveTab('profile');
     setShowDropdown(false);
   };
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      await notificationService.markAsRead(id);
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error marking as read:', error);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead();
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
     <>
@@ -58,7 +104,30 @@ const DashboardHeader = ({ toggleSidebar, setActiveTab }) => {
           </div>
         </div>
 
-        <div className="fd-header-right">
+        <div className="fd-header-right flex items-center gap-4">
+          
+          {/* Notifications */}
+          <div className="relative" ref={notifRef}>
+            <button 
+              className="relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+              onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+            >
+              <Bell size={20} />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-gray-900 animate-pulse"></span>
+              )}
+            </button>
+            
+            {showNotifDropdown && (
+              <NotificationDropdown 
+                notifications={notifications}
+                onMarkAsRead={handleMarkAsRead}
+                onMarkAllAsRead={handleMarkAllAsRead}
+                onClose={() => setShowNotifDropdown(false)}
+              />
+            )}
+          </div>
+
           {/* Profile Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <div

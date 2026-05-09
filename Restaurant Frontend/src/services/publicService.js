@@ -12,5 +12,8 @@ const publicApi = axios.create({
 export const publicService = {
   getMenu: (slug) => publicApi.get(`/menu/${slug}`),
   verifyTable: (id, token) => publicApi.get(`/table/${id}/${token}`),
+  startSession: (table_id, token) => publicApi.post('/session/start', { table_id, token }),
+  getOrders: (session_id) => publicApi.get(`/orders/${session_id}`),
+  requestBill: (table_id, session_id) => publicApi.post('/session/request-bill', { table_id, session_id }),
   placeOrder: (data) => publicApi.post('/order', data),
 };

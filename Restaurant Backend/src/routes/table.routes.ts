@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { protectRestaurantUser, restrictTo } from '../middleware/auth.middleware';
-import { createTable, getAllTables, updateTable } from '../controllers/table.controller';
+import { createTable, getAllTables, updateTable, getTableBillingDetails, mergeCompleteTableSessions } from '../controllers/table.controller';
 
 const router = Router();
 
@@ -9,6 +9,12 @@ router.use(protectRestaurantUser);
 
 // GET /api/v1/tables -> Sabhi tables list karo
 router.get('/', getAllTables);
+
+// GET /api/v1/tables/:id/billing -> Table billing details
+router.get('/:id/billing', getTableBillingDetails);
+
+// POST /api/v1/tables/:id/merge-complete -> Merge & complete sessions
+router.post('/:id/merge-complete', restrictTo('owner', 'manager'), mergeCompleteTableSessions);
 
 // POST /api/v1/tables -> Nayi table banao (Owner, Manager only)
 router.post('/', restrictTo('owner', 'manager'), createTable);

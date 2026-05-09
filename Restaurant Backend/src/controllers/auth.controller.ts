@@ -47,7 +47,7 @@ export const loginRestaurantUser = asyncHandler(
 
     if (!user.is_active)
       throw new AppError('Aapka account inactive hai. Owner / Admin se contact karein', 403);
-      
+
     if (!user.is_restaurant_active)
       throw new AppError('Aapka restaurant block ho chuka hai. Super Admin se contact karein', 403);
 
@@ -57,7 +57,7 @@ export const loginRestaurantUser = asyncHandler(
 
     const accessToken = generateAccessToken(user.id, user.restaurant_id, user.email, user.role);
     const refreshToken = generateRefreshToken(user.id, user.role);
-    
+
     const now = getNowIST();
     const expiresAt = moment().tz('Asia/Kolkata').add(7, 'days').format('YYYY-MM-DD HH:mm:ss');
 
@@ -147,7 +147,7 @@ export const refreshTokenHandler = asyncHandler(
       const [adminRows] = await pool.execute('SELECT * FROM super_admins WHERE id = ?', [id]);
       const admin = (adminRows as SuperAdminRow[])[0];
       if (!admin || !admin.is_active) throw new AppError('Admin inactive ya exist nahi karta', 401);
-      
+
       newAccessToken = jwt.sign(
         { id: admin.id, email: admin.email, role: 'super_admin' },
         process.env.JWT_ACCESS_SECRET as string,
@@ -157,16 +157,16 @@ export const refreshTokenHandler = asyncHandler(
       const [userRows] = await pool.execute('SELECT * FROM restaurant_users WHERE id = ?', [id]);
       const user = (userRows as RestaurantUserRow[])[0];
       if (!user || !user.is_active) throw new AppError('User inactive ya exist nahi karta', 401);
-      
+
       newAccessToken = generateAccessToken(user.id, user.restaurant_id, user.email, user.role);
     }
 
     // 4. Update refresh token in DB
     const now = getNowIST();
     const expiresAt = moment().tz('Asia/Kolkata').add(7, 'days').format('YYYY-MM-DD HH:mm:ss');
-    
+
     await pool.execute('DELETE FROM refresh_tokens WHERE token = ?', [refresh_token]);
-    
+
     await pool.execute(
       `INSERT INTO refresh_tokens (user_id, user_type, token, expires_at, created_at)
        VALUES (?, ?, ?, ?, ?)`,
@@ -187,3 +187,5 @@ export const refreshTokenHandler = asyncHandler(
     });
   }
 );
+
+// Triggering nodemon restart for .env variables

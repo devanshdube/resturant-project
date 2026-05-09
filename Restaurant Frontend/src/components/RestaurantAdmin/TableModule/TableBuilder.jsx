@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Table2, QrCode, Power, X, Download } from 'lucide-react';
+import { Plus, Search, Table2, QrCode, Power, X, Download, Receipt, Users } from 'lucide-react';
 import { tableService } from '../../../services/tableService';
 import useAuth from '../../../hooks/useAuth';
+import TableBillingModal from './TableBillingModal';
 
 const TableBuilder = () => {
   const { user } = useAuth();
@@ -10,6 +11,7 @@ const TableBuilder = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({ table_number: '', capacity: 4 });
   const [selectedQRTable, setSelectedQRTable] = useState(null);
+  const [selectedBillingTable, setSelectedBillingTable] = useState(null);
   const isReadOnly = ['staff', 'kitchen'].includes(user?.role);
 
   const fetchTables = async () => {
@@ -94,7 +96,7 @@ const TableBuilder = () => {
   };
 
   return (
-    <div className="flex flex-col h-full min-h-[600px] p-2 md:p-4">
+    <div className="flex flex-col h-full p-2 md:p-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -147,19 +149,29 @@ const TableBuilder = () => {
         ) : tables.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {tables.map(table => (
-               <div key={table.id} className={`p-5 rounded-2xl border transition-all ${table.is_active ? 'bg-white border-gray-100 hover:shadow-md hover:border-orange-200' : 'bg-gray-50 border-gray-200 opacity-70'}`}>
+               <div key={table.id} className={`p-5 rounded-2xl border transition-all relative overflow-hidden ${table.is_active ? 'bg-white border-gray-100 hover:shadow-md hover:border-orange-200' : 'bg-gray-50 border-gray-200 opacity-70'}`}>
+                 
+                 {/* Active Sessions Badge */}
+                 {table.active_session_count > 0 && (
+                   <div className="absolute top-0 right-0 bg-blue-500 text-white px-3 py-1 text-[10px] font-black flex items-center gap-1 rounded-bl-xl shadow-sm">
+                      <Users size={12} /> {table.active_session_count} ACTIVE
+                   </div>
+                 )}
+
                  <div className="flex justify-between items-start mb-4">
                    <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center text-orange-500">
                      <Table2 size={24} />
                    </div>
                     {!isReadOnly && (
-                      <button 
-                        onClick={() => toggleTableStatus(table)}
-                        className={`p-2 rounded-full ${table.is_active ? 'text-green-500 hover:bg-green-50' : 'text-red-500 hover:bg-red-50'}`}
-                        title={table.is_active ? 'Deactivate Table' : 'Activate Table'}
-                      >
-                        <Power size={18} />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button 
+                          onClick={() => toggleTableStatus(table)}
+                          className={`p-2 rounded-full ${table.is_active ? 'text-green-500 hover:bg-green-50' : 'text-red-500 hover:bg-red-50'}`}
+                          title={table.is_active ? 'Deactivate Table' : 'Activate Table'}
+                        >
+                          <Power size={18} />
+                        </button>
+                      </div>
                     )}
                  </div>
                  
@@ -167,9 +179,17 @@ const TableBuilder = () => {
                  <p className="text-xs text-gray-500 mb-4">{table.capacity} Seats</p>
                  
                  <div className="border-t border-dashed border-gray-200 pt-4 flex gap-2">
-                    <button onClick={() => setSelectedQRTable(table)} className="flex-1 flex items-center justify-center gap-2 bg-gray-900 text-white py-2 rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors">
-                      <QrCode size={14} /> View QR
+                    <button onClick={() => setSelectedQRTable(table)} className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-600 py-2 rounded-lg text-xs font-bold hover:bg-gray-200 transition-colors">
+                      <QrCode size={14} /> QR
                     </button>
+                    {table.active_session_count > 0 && (
+                      <button 
+                        onClick={() => setSelectedBillingTable(table)}
+                        className="flex-1 flex items-center justify-center gap-2 bg-gray-900 text-white py-2 rounded-lg text-xs font-bold hover:bg-black transition-colors shadow-lg shadow-gray-200"
+                      >
+                        <Receipt size={14} /> Merge Bill
+                      </button>
+                    )}
                  </div>
                </div>
             ))}
@@ -225,6 +245,16 @@ const TableBuilder = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Billing Modal */}
+      {selectedBillingTable && (
+        <TableBillingModal 
+          tableId={selectedBillingTable.id}
+          tableNumber={selectedBillingTable.table_number}
+          onClose={() => setSelectedBillingTable(null)}
+          onComplete={fetchTables}
+        />
       )}
     </div>
   );

@@ -144,6 +144,27 @@
   display: flex;
   flex-direction: column;
   gap: 30px;
+  overflow-y: auto; /* Enable scrolling */
+  scrollbar-width: thin;
+  scrollbar-color: #ff8c00 #f9f9f9;
+}
+
+/* Custom Scrollbar for Webkit */
+.fd-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.fd-sidebar::-webkit-scrollbar-track {
+  background: var(--food-bg-light);
+}
+
+.fd-sidebar::-webkit-scrollbar-thumb {
+  background: #e0e0e0;
+  border-radius: 10px;
+}
+
+.fd-sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--food-orange);
 }
 
 .fd-nav-group {
@@ -198,6 +219,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  min-height: 0; /* Important for flex children to scroll correctly */
 }
 
 @media (min-width: 768px) {

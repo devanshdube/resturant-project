@@ -12,6 +12,7 @@ import tableRoutes from './routes/table.routes';
 import menuRoutes from './routes/menu.routes';
 import publicRoutes from './routes/public.routes';
 import orderRoutes from './routes/order.routes';
+import notificationRoutes from './routes/notification.routes';
 
 // ─── Error Middleware ─────────────────────────────────────────────────────────
 import { notFound, errorHandler } from './middleware/error.middleware';
@@ -37,6 +38,7 @@ app.use('/api/v1/tables', tableRoutes);
 app.use('/api/v1/menu', menuRoutes);
 app.use('/api/v1/public', publicRoutes);
 app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 // ─── 404 & Error Handlers ────────────────────────────────────────────────────
 app.use(notFound);

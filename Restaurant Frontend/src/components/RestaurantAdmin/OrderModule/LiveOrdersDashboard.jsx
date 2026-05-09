@@ -59,6 +59,17 @@ const STATUS_CONFIG = {
   }
 };
 
+const canUpdateStatus = (currentStatus, role) => {
+  if (['owner', 'manager'].includes(role)) return true;
+  if (role === 'kitchen') {
+    return ['confirmed', 'preparing'].includes(currentStatus);
+  }
+  if (role === 'staff') {
+    return ['pending', 'ready', 'served'].includes(currentStatus);
+  }
+  return false;
+};
+
 const FILTER_TABS = [
   { id: null, label: 'All Orders' },
   { id: 'pending', label: '🔔 New' },
@@ -104,6 +115,20 @@ const OrderDetailModal = ({ orderId, onClose, onStatusUpdate }) => {
     }
   };
 
+  const handleCompleteSession = async () => {
+    if (!window.confirm('Kya aap poora session complete karna chahte hain? Sabhi related orders complete ho jayenge.')) return;
+    try {
+      setUpdating(true);
+      await orderService.completeSession(order.session_id);
+      onStatusUpdate();
+      onClose();
+    } catch (e) {
+      alert('Session complete karne mein fail ho gaya');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const cfg = order ? STATUS_CONFIG[order.status] : null;
 
   return (
@@ -121,9 +146,10 @@ const OrderDetailModal = ({ orderId, onClose, onStatusUpdate }) => {
             </button>
           </div>
           {order && (
-            <div className="flex items-center gap-3 mt-3">
+            <div className="flex flex-wrap items-center gap-3 mt-3">
               <span className={`text-xs font-bold px-3 py-1 rounded-full ${cfg?.badge}`}>{cfg?.label}</span>
               <span className="text-gray-400 text-xs">Table: {order.table_number}</span>
+              {order.session_id && <span className="text-orange-400 text-xs font-bold">QR Guest</span>}
               <span className="text-gray-400 text-xs">• {order.created_at?.substring(11, 16)}</span>
             </div>
           )}
@@ -158,6 +184,18 @@ const OrderDetailModal = ({ orderId, onClose, onStatusUpdate }) => {
               )}
             </div>
 
+            {/* Session Info */}
+            {order?.session_id && (
+               <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-gray-400 uppercase">Session Status</span>
+                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${order.session_status === 'active' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>
+                       {order.session_status || 'Active'}
+                    </span>
+                  </div>
+               </div>
+            )}
+
             {/* Total */}
             {isManager && (
               <div className="px-5 pb-2 border-t border-gray-100">
@@ -168,25 +206,40 @@ const OrderDetailModal = ({ orderId, onClose, onStatusUpdate }) => {
               </div>
             )}
 
-            {/* Action Button */}
-            {cfg?.next && (
-              <div className="px-5 pb-5 flex gap-3">
-                <button
-                  onClick={() => handleStatusChange('cancelled')}
-                  disabled={updating}
-                  className="flex-none px-4 py-3 bg-red-50 text-red-500 font-bold rounded-2xl hover:bg-red-100 transition-colors text-sm disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleStatusChange(cfg.next.status)}
-                  disabled={updating}
-                  className={`flex-1 py-3 text-white font-bold rounded-2xl transition-colors text-sm disabled:opacity-50 ${cfg.next.color}`}
-                >
-                  {updating ? 'Updating...' : cfg.next.label}
-                </button>
+            {/* Action Buttons */}
+            <div className="px-5 pb-5 flex flex-col gap-2">
+              <div className="flex gap-3">
+                {['owner', 'manager', 'staff'].includes(user?.role) && order?.status !== 'completed' && order?.status !== 'cancelled' && (
+                  <button
+                    onClick={() => handleStatusChange('cancelled')}
+                    disabled={updating}
+                    className="flex-none px-4 py-3 bg-red-50 text-red-500 font-bold rounded-2xl hover:bg-red-100 transition-colors text-sm disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                )}
+                {cfg?.next && canUpdateStatus(order?.status, user?.role) && (
+                  <button
+                    onClick={() => handleStatusChange(cfg.next.status)}
+                    disabled={updating}
+                    className={`flex-1 py-3 text-white font-bold rounded-2xl transition-colors text-sm disabled:opacity-50 ${cfg.next.color}`}
+                  >
+                    {updating ? 'Updating...' : cfg.next.label}
+                  </button>
+                )}
               </div>
-            )}
+              
+              {/* Session Completion Button */}
+              {order?.session_id && order?.session_status !== 'completed' && isManager && (
+                <button
+                  onClick={handleCompleteSession}
+                  disabled={updating}
+                  className="w-full py-3 bg-purple-600 text-white font-bold rounded-2xl hover:bg-purple-700 transition-colors text-sm disabled:opacity-50 shadow-lg shadow-purple-100"
+                >
+                   Finalize Bill & Complete Session
+                </button>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -199,13 +252,20 @@ const OrderCard = ({ order, onClick }) => {
   const { user } = useAuth();
   const isManager = ['owner', 'manager'].includes(user?.role);
   const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
-  const StatusIcon = cfg.icon;
+  const isReady = order.status === 'ready';
+  const billRequested = order.session_status === 'active'; // In a real app, we'd have a 'billing' status
 
   return (
     <div
       onClick={onClick}
-      className={`p-4 rounded-2xl border-2 cursor-pointer transition-all hover:shadow-md active:scale-[0.98] ${cfg.bg} ${cfg.border}`}
+      className={`p-4 rounded-2xl border-2 cursor-pointer transition-all hover:shadow-md active:scale-[0.98] relative overflow-hidden ${cfg.bg} ${cfg.border} ${isReady ? 'animate-pulse ring-4 ring-green-300 ring-opacity-50 shadow-lg shadow-green-200' : ''}`}
     >
+      {order.session_id && (
+        <div className="absolute top-0 right-0 px-2 py-0.5 bg-orange-500 text-[8px] font-bold text-white uppercase tracking-tighter rounded-bl-lg">
+           QR Guest
+        </div>
+      )}
+      
       <div className="flex justify-between items-start mb-3">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -247,6 +307,10 @@ const LiveOrdersDashboard = () => {
   const [activeFilter, setActiveFilter] = useState(null);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [lastRefreshed, setLastRefreshed] = useState(new Date());
+  
+  const [isKitchenMode, setIsKitchenMode] = useState(user?.role === 'kitchen');
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [prevPendingCount, setPrevPendingCount] = useState(0);
 
   const fetchData = useCallback(async () => {
     try {
@@ -272,8 +336,27 @@ const LiveOrdersDashboard = () => {
     return () => clearInterval(interval);
   }, [fetchData]);
 
+  // Audio Logic
+  useEffect(() => {
+    if (stats?.pending !== undefined && soundEnabled) {
+      if (stats.pending > prevPendingCount) {
+        try {
+          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+          audio.play().catch(e => console.log('Audio autoplay prevented'));
+        } catch(e) {}
+      }
+      setPrevPendingCount(stats.pending);
+    } else if (stats?.pending !== undefined) {
+      setPrevPendingCount(stats.pending);
+    }
+  }, [stats?.pending, prevPendingCount, soundEnabled]);
+
+  const displayedOrders = isKitchenMode 
+    ? orders.filter(o => ['confirmed', 'preparing'].includes(o.status))
+    : orders;
+
   return (
-    <div className="flex flex-col h-full min-h-[600px]">
+    <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
@@ -287,13 +370,30 @@ const LiveOrdersDashboard = () => {
             Auto-refreshes every 20s • Last: {lastRefreshed.toLocaleTimeString('en-IN')}
           </p>
         </div>
-        <button
-          onClick={() => { setLoading(true); fetchData(); }}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-sm transition-colors"
-        >
-          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-          Refresh
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className={`p-2 rounded-xl transition-colors ${soundEnabled ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}
+            title={soundEnabled ? 'Sound On' : 'Sound Off'}
+          >
+            {soundEnabled ? <span className="font-bold text-sm">🔊</span> : <span className="font-bold text-sm">🔇</span>}
+          </button>
+          {user?.role === 'kitchen' && (
+            <button
+              onClick={() => setIsKitchenMode(!isKitchenMode)}
+              className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors ${isKitchenMode ? 'bg-orange-500 text-white shadow-md' : 'bg-gray-100 text-gray-600'}`}
+            >
+              🔥 Kitchen Mode
+            </button>
+          )}
+          <button
+            onClick={() => { setLoading(true); fetchData(); }}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-sm transition-colors"
+          >
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Stats Bar */}
@@ -336,9 +436,9 @@ const LiveOrdersDashboard = () => {
           <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500" />
           </div>
-        ) : orders.length > 0 ? (
+        ) : displayedOrders.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {orders.map(order => (
+            {displayedOrders.map(order => (
               <OrderCard
                 key={order.id}
                 order={order}

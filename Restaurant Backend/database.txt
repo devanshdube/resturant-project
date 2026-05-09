@@ -224,6 +224,7 @@ CREATE TABLE orders (
   id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
   restaurant_id   INT UNSIGNED    NOT NULL,
   table_id        INT UNSIGNED    NOT NULL,
+  session_id      VARCHAR(100)    DEFAULT NULL,       -- Guest session ID (e.g. T2-S3f2a1b)
   customer_id     INT UNSIGNED    DEFAULT NULL,
   order_number    VARCHAR(30)     NOT NULL,           -- human-readable e.g. "ORD-20240401-0023"
   status          ENUM(
@@ -253,6 +254,23 @@ CREATE TABLE orders (
     REFERENCES restaurant_tables(id),
   CONSTRAINT fk_order_customer FOREIGN KEY (customer_id)
     REFERENCES customers(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 10b. TABLE SESSIONS  (Individual guest sessions per QR scan)
+--      Ek table par multiple log alag-alag scan karte hain → alag session
+-- ============================================================
+CREATE TABLE table_sessions (
+  id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  table_id        INT UNSIGNED    NOT NULL,
+  session_id      VARCHAR(100)    NOT NULL UNIQUE,    -- e.g. "T2-S3f2a1b8c9d0"
+  status          ENUM('active','completed') NOT NULL DEFAULT 'active',
+  created_at      VARCHAR(100)    NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_ts_session (session_id),
+  CONSTRAINT fk_ts_table FOREIGN KEY (table_id)
+    REFERENCES restaurant_tables(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

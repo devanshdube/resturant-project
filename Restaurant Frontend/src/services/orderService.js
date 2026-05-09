@@ -9,4 +9,5 @@ export const orderService = {
   updateStatus: (id, status) => api.patch(`/orders/${id}/status`, { status }),
   getStats: () => api.get('/orders/stats'),
   getAnalytics: () => api.get('/orders/analytics'),
+  completeSession: (session_id) => api.post('/public/session/complete', { session_id }), // Calling the public endpoint from admin
 };
