@@ -1,77 +1,72 @@
 # Project: Restaurant Management System (RMS)
-**Last Updated: 2026-05-02**
+**Last Updated: 2026-05-09**
 
 ## Project Goal
 The primary goal of this project is to develop a comprehensive, multi-tenant Restaurant Management System. This system allows restaurant owners and staff to manage their business operations (Menu, Tables, Orders) and provides a QR-based Guest Ordering system for customers.
 
 ---
 
-## ✅ Completed Work (As of May 2, 2026)
+## ✅ Completed Work (Updated May 9, 2026)
 
-### 1. Backend Development (Node.js, Express, TypeScript)
-- **Core Architecture**: TypeScript structure with connection pooling (MySQL) and error handling.
-- **Authentication & Security**:
-    - JWT-based Auth with Refresh Token logic.
-    - Role-Based Access Control (RBAC): SuperAdmin, Owner, Manager, Staff, Kitchen.
-    - CORS Policy optimization for cross-origin local and network access.
-- **SuperAdmin Module**: Full management for onboarding restaurants and managing subscription plans.
-- **Restaurant Management**: Endpoints for profile management (GST, Logo, Timings, etc.).
-- **Menu System**: Complete CRUD for Categories, Menu Items, and Portions/Variants.
-- **Table Management**: CRUD for physical tables and status tracking.
+### 1. Guest QR Ordering Experience (High-Fidelity)
+- **Premium Redesign**: Complete overhaul of the Guest Menu interface with a mobile-first, "Premium App" aesthetic.
+- **Sticky Navigation**: Fixed header with "Request Bill" button (Rupee badge), centered search bar, and live cart counter.
+- **Adaptive Grid System**: Fully responsive menu cards that adjust from 1 column (mobile) to 4 columns (desktop).
+- **Horizontal Category Navigation**: Sticky, scrollable tabs for quick category switching.
+- **Advanced Cart Logic**: Mobile-drawer style basket with item quantity management and real-time total calculation (including GST simulation).
+- **Order Tracking**: Guests can track their live orders (Pending -> Preparing -> Ready -> Served) from the menu page.
+- **Multi-Session Tracking**: Backend support for multiple guest sessions per table, ensuring unique orders per scan.
 
-### 2. Frontend Development (React, Vite)
-- **Base Setup**: Vite + Tailwind CSS + Axios + TanStack Query integration.
-- **Authentication**: 
-    - **Premium LoginPage**: Redesigned with a split-screen, high-fidelity UI.
-    - **Role-Based Toggle**: Visual switch between "Restaurant" and "Platform Admin" portals.
-    - **Dual-Endpoint Logic**: Updated `useAuth` hook to dynamically handle different backend login endpoints.
-    - Auth state management and Protected Routes implementation.
-- **SuperAdmin Platform**:
-    - **Main Dashboard**: High-fidelity UI with real-time platform stats cards.
-    - **Onboarding Flow**: Modal-based workflow for creating new restaurant accounts.
-    - **Management Table**: Comprehensive table with search, status filtering, and pagination.
-    - **Admin Actions**: Block/Unblock restaurant owners and manage subscription plans.
-- **Restaurant Owner Dashboard**:
-    - **Menu Management**: Full CRUD for Categories and Menu Items.
-    - **Item Variants**: Support for Full/Half prices and variants.
-    - **Profile Management**: Complete UI for updating restaurant information (GST, contact, branding).
-    - **Staff Management**: CRUD for managing restaurant employees and roles.
-    - **RBAC Sidebar**: Dynamic sidebar that hides/shows features based on user role (Owner, Manager, Staff).
-- **UI/UX Enhancements**:
-    - Integrated `lucide-react` for professional iconography.
-    - Custom AI-generated branding assets for the login/landing experience.
-    - Transitioned manual state fetching to `react-query` for better performance.
+### 2. Order Management & Staff Alerts
+- **Live Orders Dashboard**: Centralized view for staff to manage order life-cycles.
+- **Real-time Notifications**: 
+    - Notification system for "New Orders" and "Bill Requests".
+    - **Audio Alerts**: Sound notifications for new incoming orders.
+    - **Notification Dropdown**: Integrated in the dashboard header for quick status updates.
+- **Kitchen Mode**: Initial implementation for kitchen-specific order views.
+- **Session Billing**: Functionality for staff to "Finalize Bill" and close guest sessions.
 
-### 3. Database Design
-- **Core Schema**: Tables for Restaurants, Users, Menus, Tables, and Subscriptions.
+### 3. QR Code & Table Management
+- **QR Code Generator**: Automatic generation of unique table URLs and QR tokens.
+- **Table Session Logic**: Database schema and backend logic to track active sessions via unique tokens.
+
+### 4. Core Backend & Platform Admin (May 2 Archive)
+- **Multi-Tenant Architecture**: Node.js/Express/TypeScript foundation with connection pooling.
+- **Authentication**: JWT-based Auth with Refresh Token rotation and Role-Based Access Control (RBAC).
+- **SuperAdmin Portal**: Full dashboard for onboarding restaurants and managing global subscriptions.
+- **Menu Builder**: Complete CRUD for categories, items, and variants (portions).
+- **Staff Management**: Role-specific access (Owner, Manager, Staff, Kitchen).
 
 ---
 
-## ⏳ In Progress & Pending Work (Current Roadmap)
+## ⏳ In Progress & Pending Work (Next Steps)
 
-### 1. Core Modules (High Priority)
-- [ ] **Guest QR Ordering Flow**:
-    - **Landing Page**: UI for users who scan the table QR code.
-    - **Public Menu**: Responsive menu browsing for guests.
-    - **Cart & Checkout**: Session-based cart and order submission logic.
-- [ ] **Real-time Order Management**:
-    - **KDS (Kitchen Display System)**: Live updates for kitchen staff when new orders arrive.
-    - **Staff Notification**: Real-time alerts for new orders and bill requests.
-    - **Status Tracking**: Transitioning orders from "Pending" -> "Preparing" -> "Ready" -> "Served".
-- [ ] **QR Code Generator**: Automatic generation and downloading of unique QR codes for each physical table.
+### 1. Restaurant Settings Module (Item #3)
+- [ ] **Custom Settings**: UI/Backend for managing GST percentage, service charges, and currency symbols.
+- [ ] **Business Hours**: Setting opening/closing times and "Store Status" (Open/Closed).
+- [ ] **Regional Settings**: Timezone and local preferences.
 
-### 2. Feature Enhancements
-- [ ] **Image Upload System**: Integration with Cloudinary or local storage for uploading Menu Item images and Restaurant Logos.
-- [ ] **Advanced Analytics**: Detailed sales reports, top-selling items charts, and revenue insights.
-- [ ] **Table Status Map**: A visual/grid layout of tables showing real-time occupancy and order status.
-- [ ] **Billing & Payment Integration**: Support for digital payments (UPI/Razorpay) and advanced invoice generation.
+### 2. Advanced Billing & Session Logic (Item #4)
+- [ ] **Merge Bills**: Ability to merge multiple guest sessions on a single table into one final invoice.
+- [ ] **Billing History**: Archive of all past payments and invoices.
+- [ ] **Digital Payments**: Integration with UPI/Razorpay for guest self-payment.
 
-### 3. SuperAdmin Improvements
-- [ ] **Settings & Configuration**: Platform-wide settings management.
-- [ ] **Subscription History**: Detailed logs of restaurant subscription renewals and payments.
-- [ ] **System Audit Logs**: Tracking administrative actions across the platform.
+### 3. Advanced Analytics & Reports (Item #5)
+- [ ] **Revenue Trends**: Daily/Weekly/Monthly growth charts.
+- [ ] **Product Performance**: Detailed analysis of top-selling vs. slow-moving items.
+- [ ] **Staff Analytics**: Tracking order processing times per staff/kitchen user.
+
+### 4. Kitchen Mode Refinement (Item #6)
+- [ ] **Simplified View**: UI specifically designed for tablet screens in the kitchen.
+- [ ] **Privacy Mode**: Option to hide prices and billing info from kitchen staff.
+- [ ] **Kitchen Timer**: Tracking how long an order has been in "Preparing" state.
+
+### 5. Security, Media & Polish (Item #7 & More)
+- [ ] **Security Hardening**: Rate limiting on public APIs and input sanitization.
+- [ ] **Image Upload System**: Moving from text URLs to actual file uploads (Cloudinary/S3).
+- [ ] **SEO & Metadata**: Further optimization for the guest landing page.
 
 ---
 
 ## Current Status
-The foundation (Auth, Menu, Staff, Profile) is solid. The next major milestone is the **Guest Ordering Experience** and making the **Order Life Cycle** real-time. We are moving from static management to dynamic operation.
+The **Guest Ordering Life-Cycle** and **Staff Notification System** are now operational and visually premium. The next phase focuses on operational control (Settings), financial depth (Billing), and business intelligence (Analytics).
